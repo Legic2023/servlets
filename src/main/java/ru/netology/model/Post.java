@@ -17,15 +17,12 @@ public class Post {
         return id;
     }
 
-
-    public String getContent() {
-        return content;
+    public void setId(long id) {
+        this.id = id;
     }
-
 
     @Override
     public String toString() {
-
         return "id: " + this.id + ", content: " + this.content;
     }
 }

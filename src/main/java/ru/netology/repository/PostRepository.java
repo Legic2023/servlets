@@ -2,53 +2,50 @@ package ru.netology.repository;
 
 import ru.netology.model.Post;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 // Stub
 public class PostRepository {
 
-    private List<Post> itemsList;
-    private Long itemsCounter;
+    private ConcurrentHashMap<Long, Post> postsMap;
+    private Long postsCounter;
 
     public PostRepository() {
-        this.itemsList = new CopyOnWriteArrayList<>();
-        this.itemsCounter = 0L;
+        this.postsMap = new ConcurrentHashMap<Long, Post>();
+        this.postsCounter = 0L;
 
     }
 
     public List<Post> all() {
-        return Collections.emptyList();
+        return new ArrayList<>(postsMap.values());
     }
 
     public Optional<Post> getById(long id) {
-        return Optional.empty();
+        return Optional.ofNullable(postsMap.get(id));
     }
 
     public Post save(Post post) {
+        long id = post.getId();
+        if (getById(id).isPresent()) {
+            return postsMap.put(id, post);
+        } else if (id == 0) {
+            post.setId(++postsCounter);
+            return postsMap.put(postsCounter, post);
+        }
         return post;
     }
 
-    public void removeById(long id) {
-        itemsList.remove((int) id - 1);
+    public boolean removeById(long id) {
+        if (getById(id).isPresent()) {
+            postsMap.remove(id);
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    public List<Post> getItemsList() {
-        return itemsList;
-    }
-
-    public void addPost(Post post) {
-        itemsList.add(post);
-    }
-
-    public Long getItemsCounter() {
-        return itemsCounter;
-    }
-
-    public void iterateCounter() {
-        this.itemsCounter++;
-    }
 
 }

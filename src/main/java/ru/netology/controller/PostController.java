@@ -1,6 +1,7 @@
 package ru.netology.controller;
 
 import com.google.gson.Gson;
+import ru.netology.exception.NotFoundException;
 import ru.netology.model.Post;
 import ru.netology.service.PostService;
 
@@ -26,12 +27,9 @@ public class PostController {
     }
 
     public void getById(long id, HttpServletResponse response) throws IOException {
-        // если элемент есть в репозитории, считываем и печатаем
-        if (service.getRepository().getItemsList()
-                .stream()
-                .anyMatch(c -> c.getId() == id - 1)) {
-            response.getWriter().print(service.getRepository().getItemsList().get((int) id - 1).toString());
-        } else {
+        try {
+            response.getWriter().print(service.getById(id).toString());
+        } catch (NotFoundException e) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
@@ -40,30 +38,15 @@ public class PostController {
         response.setContentType(APPLICATION_JSON);
         final var post = gson.fromJson(body, Post.class);
         final var data = service.save(post);
-
-        if (data.getId() == 0) {
-            service.getRepository().addPost(new Post(service.getRepository().getItemsCounter(), data.getContent()));
-            service.getRepository().iterateCounter();
-
-        } else if (service.getRepository().getItemsList()
-                .stream()
-                .anyMatch(c -> c.getId() == data.getId())) {
-            response.setStatus(HttpServletResponse.SC_CONFLICT);
-        }
-        response.getWriter().print(gson.toJson(data));
+        response.getWriter().print(gson.toJson(post));
     }
 
     public void removeById(long id, HttpServletResponse response) throws IOException {
-        // если элемент есть в репозитории, то удаляем
-        if (service.getRepository().getItemsList()
-                .stream()
-                .anyMatch(c -> c.getId() == id - 1)) {
-            service.removeById(id);
+        if (service.removeById(id)) {
             response.getWriter().print("Пост " + id + " удален!");
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
-
     }
 
 }
